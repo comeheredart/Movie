@@ -55,14 +55,9 @@ class ListViewController: UITableViewController {
                 mvo.detail = r["linkUrl"] as? String
                 mvo.rating = ((r["ratingAverage"] as! NSString).doubleValue)
                 
-                //메모제이션
-                let url: URL! = URL(string: mvo.thumbnail!)
-                let imageData = try! Data(contentsOf: url)
-                mvo.thumbnailImage = UIImage(data: imageData)
-                
-                
                 self.list.append(mvo)
                 
+                //더보기 버튼 숨김 처리
                 let totalCount = (hoppin["totalCount"] as? NSString)!.integerValue
                 
                 if (self.list.count >= totalCount) {
@@ -70,6 +65,22 @@ class ListViewController: UITableViewController {
                 }
             }
         } catch { NSLog("Parse Error!") }
+    }
+    
+    func getThumbnailImage(_ index: Int) -> UIImage {
+        
+        let mvo = self.list[index]
+        
+        //메모제이션
+        if let savedImage = mvo.thumbnailImage {
+            return savedImage
+        } else {
+            let url: URL! = URL(string: mvo.thumbnail!)
+            let imageData = try! Data(contentsOf: url)
+            mvo.thumbnailImage = UIImage(data: imageData)
+            
+            return mvo.thumbnailImage!
+        }
     }
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -82,12 +93,17 @@ class ListViewController: UITableViewController {
         let cell = tableView.dequeueReusableCell(withIdentifier: "ListCell") as! MovieCell
         
         
-        
         cell.title?.text = row.title
         cell.desc?.text = row.description
         cell.opendate?.text = row.opendate
         cell.rating?.text = "\(row.rating!)"
-        cell.thumbnail.image = row.thumbnailImage
+        
+        
+        //비동기 방식
+        DispatchQueue.main.async {
+            cell.thumbnail.image = self.getThumbnailImage(indexPath.row)
+        }
+        
         
         
         return cell
@@ -99,5 +115,20 @@ class ListViewController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, estimatedHeightForRowAt indexPath: IndexPath) -> CGFloat {
         return 80
+    }
+}
+
+//MARK: - 화면 전환 시 값을 넘겨주기 위한 세그웨이 처리
+extension ListViewController {
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if segue.identifier == "segue_detail" {
+            
+            let cell = sender as! MovieCell
+            let path = self.tableView.indexPath(for: cell)
+            let movieinfo = self.list[path!.row]
+            
+            let detailVC = segue.destination as? DetailViewController
+            detailVC?.mvo = movieinfo
+        }
     }
 }
