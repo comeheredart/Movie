@@ -12,10 +12,12 @@ class TheaterListViewController: UITableViewController {
     var list = [NSDictionary]()
     var startPoint = 0
     
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         callTheaterAPI()
     }
+    
     
     func callTheaterAPI() {
         let requestURI = "http://swiftapi.rubypaper.co.kr:2029/theater/list"
@@ -47,10 +49,12 @@ class TheaterListViewController: UITableViewController {
             self.present(alert, animated: false)
         }
     }
+    
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return self.list.count
     }
+    
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let obj = self.list[indexPath.row]
@@ -63,8 +67,21 @@ class TheaterListViewController: UITableViewController {
         return cell
     }
     
+    
     override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         return 100
+    }
+    
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if (segue.identifier == "segue_map") {
+            
+            let path = self.tableView.indexPath(for: sender as! TheaterCell)
+            let data = self.list[path!.row]
+            
+            (segue.destination as? TheaterViewViewController)?.param = data
+        }
+        
     }
     
     
